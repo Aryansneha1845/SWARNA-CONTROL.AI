@@ -30,6 +30,10 @@ implemented and verified unless marked as accepted risk / future work.
 - [x] CORS: explicit `FRONTEND_ORIGIN` allowlist, methods GET/POST only (was `*`). Verified no wildcard echo.
 - [x] Backend security headers: nosniff, DENY framing, strict referrer, locked Permissions-Policy, restrictive CSP, HSTS in prod.
 - [x] Next.js: `poweredByHeader: false`, same headers + CSP via `next.config.js`.
+  Lesson learned 29 Sep: `script-src 'self'` without `'unsafe-inline'` breaks Next.js itself
+  (its runtime uses inline scripts) — React never hydrates and every click dies silently.
+  Fix: `'unsafe-inline'` allowed for scripts (no nonce infra), `'unsafe-eval'` dev-only for
+  webpack/react-refresh. All other sources stay locked to `'self'`/none; no third-party scripts exist.
 - [x] Debug/reload (`uvicorn --reload`) is dev-only (`run_backend.bat`); prod runs `ENV=prod` without reload (see below).
 
 ## 5. Dependencies

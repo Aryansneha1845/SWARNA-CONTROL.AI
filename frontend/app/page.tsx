@@ -8,6 +8,7 @@ import { api, PRESETS } from '../lib/api';
 import { buildCase, T_MAX, REPLAY_SCRIPT, type CaseModel, type Rail } from '../lib/model';
 import { webglOK } from '../components/scene3d';
 import Graph2D from '../components/graph2d';
+import SceneBoundary from '../components/boundary';
 import Timeline from '../components/timeline';
 import Palette, { type PaletteCmd } from '../components/palette';
 import { EntityInspector, EvidencePanel, RiskOrb, CrossRailView, IntelPanel, ControlPanel, CaseOverview } from '../components/panels';
@@ -205,8 +206,10 @@ export default function CommandCenter() {
                 ))}
               </div>
               {caseData ? (gl ? (
-                <InvestigationScene key={sceneKey} caseData={caseData} time={time} selectedId={selectedId}
-                  onSelect={setSelectedId} railFilter={railFilter} entered={entered} />
+                <SceneBoundary fallback={<Graph2D caseData={caseData} time={time} selectedId={selectedId} onSelect={setSelectedId} railFilter={railFilter} />}>
+                  <InvestigationScene key={sceneKey} caseData={caseData} time={time} selectedId={selectedId}
+                    onSelect={setSelectedId} railFilter={railFilter} entered={entered} />
+                </SceneBoundary>
               ) : (
                 <Graph2D caseData={caseData} time={time} selectedId={selectedId} onSelect={setSelectedId} railFilter={railFilter} />
               )) : (
@@ -275,7 +278,11 @@ export default function CommandCenter() {
       {/* ---------- HERO ---------- */}
       {!entered && (
         <div className={`hero-back ${heroExit ? 'exit' : ''}`}>
-          <div className="hero-3d">{gl && <AmbientNet />}</div>
+          <div className="hero-3d">{gl && (
+            <SceneBoundary fallback={null}>
+              <AmbientNet />
+            </SceneBoundary>
+          )}</div>
           <div className="hero-content">
             <h1>SWARNA-<span className="gold">CONTROL.AI</span></h1>
             <div className="hero-tag">SECURE WEALTH &amp; RESILIENCE NETWORK</div>
