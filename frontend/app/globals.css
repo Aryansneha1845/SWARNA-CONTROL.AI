@@ -1,0 +1,11 @@
+* { box-sizing: border-box; }
+body { margin: 0; background: #0b0f14; color: #e5e7eb; font-family: system-ui, sans-serif; }
+button { cursor: pointer; }
+textarea, input { font-family: inherit; }
+.card { background: #111827; border: 1px solid #1f2937; border-radius: 10px; padding: 14px; }
+.grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+@media (max-width: 900px) { .grid3 { grid-template-columns: 1fr; } }
+.ev-known { border-left: 4px solid #22c55e; }
+.ev-supported { border-left: 4px solid #3b82f6; }
+.ev-possible { border-left: 4px solid #f59e0b; }
+.ev-unverified { border-left: 4px solid #6b7280; }
