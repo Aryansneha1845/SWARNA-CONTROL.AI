@@ -2,8 +2,10 @@
 import { useState } from 'react';
 import ReactFlow, { Background, Controls } from 'reactflow';
 import 'reactflow/dist/style.css';
+import { api } from '../lib/api';
 
-const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+// All API calls go same-origin via /api/* (Next.js server attaches the key).
+// The browser never sees the backend URL or any API key.
 const PRAVEEN_MSG = `Bhai good news! SEBI approved scheme hai, 2 din me double.\nPay Rs 50,000 to our investment partner abc-invest@upi pe bhejo.\nUPI ID: abc-invest@upi\nPhone: +91 98765 43210\nWebsite: www.abc-invest-profits.com\nTelegram: @abc_invest_official`;
 const PRAVEEN_UPI = `abc-invest@upi, Rs 50,000, 12:41 PM, UTR426118473902`;
 const PRAVEEN_HASH = `0x81F4a2c9d3E7b1A05c8D2f4e6A0b3C7d9E1f2A4b5c7d9e1f2a4b5c7d9e1f2a4b5c7d9e1f2`;
@@ -25,18 +27,16 @@ export default function Page() {
   const [selected, setSelected] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [mask, setMask] = useState(true);
+  const [consent, setConsent] = useState(false);
 
   async function trace() {
     setLoading(true); setPack(null); setSelected(null);
     try {
-      const r = await fetch(`${API}/investigate`, { method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message_text: message, upi_text: upiText, upi: {}, tx_hash: hash }) });
-      const j = await r.json();
+      const j = await api.investigate(message, upiText, hash);
       setResult(j); setSelected(j.links?.[0] || null);
-      const p = await fetch(`${API}/control-pack`, { method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ upi_text: upiText, upi: j.upi || {}, entities: j.entities || [], current_destination: j.current_destination }) });
-      setPack(await p.json());
-    } catch (e) { alert('Backend not running. cd backend; uvicorn main:app --reload'); }
+      const p = await api.controlPack(upiText, j.upi || {}, j.entities || [], j.current_destination);
+      setPack(p);
+    } catch (e) { alert('Server not reachable. Start backend (run_backend.bat) and frontend (run_frontend.bat).'); }
     setLoading(false);
   }
 
@@ -66,22 +66,41 @@ export default function Page() {
 
   return (
     <main style={{ minHeight: '100vh', padding: 24, maxWidth: 1200, margin: '0 auto' }}>
+      <a href="#trace-form" className="skip-link">Skip to investigation form</a>
       <h1>SWARN-CONTROL.AI <span style={{ color: '#f59e0b' }}>Control Room</span></h1>
       <p>Hum chat nahi karte, trail reconstruct karte hain. No tips. Evidence only. PII masked by default.</p>
       <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
-        <button onClick={() => { setMessage(PRAVEEN_MSG); setUpiText(PRAVEEN_UPI); setHash(PRAVEEN_HASH); }}>Praveen 50k case</button>
-        <button onClick={() => { setMessage(KAVITA_MSG); setUpiText('kavita-family@paytm, Rs 25,000'); setHash(''); }}>Kavita backup case</button>
+        <button onClick={() => { setMessage(PRAVEEN_MSG); setUpiText(PRAVEEN_UPI); setHash(PRAVEEN_HASH); }}>Load synthetic demo: Praveen 50k case</button>
+        <button onClick={() => { setMessage(KAVITA_MSG); setUpiText('kavita-family@paytm, Rs 25,000'); setHash(''); }}>Load synthetic demo: Kavita case</button>
         <label style={{ marginLeft: 'auto' }}><input type="checkbox" checked={mask} onChange={e => setMask(e.target.checked)} /> Mask PII</label>
       </div>
-      <div className="grid3">
-        <textarea value={message} onChange={e => setMessage(e.target.value)} placeholder="1. WhatsApp/Telegram message" rows={7} className="card" style={{ color: '#fff' }} />
-        <textarea value={upiText} onChange={e => setUpiText(e.target.value)} placeholder="2. UPI details / screenshot text (OCR text paste karo)" rows={7} className="card" style={{ color: '#fff' }} />
-        <textarea value={hash} onChange={e => setHash(e.target.value)} placeholder="3. Crypto tx hash (0x…)" rows={7} className="card" style={{ color: '#fff' }} />
+      <div className="grid3" id="trace-form">
+        <div>
+          <label htmlFor="f-message" style={{ fontSize: 12, color: '#93a1b5' }}>1. Suspicious message text (your own message only, no OTPs/passwords)</label>
+          <textarea id="f-message" value={message} onChange={e => setMessage(e.target.value)} placeholder="1. WhatsApp/Telegram message" rows={7} className="card" style={{ color: '#fff', width: '100%' }} />
+        </div>
+        <div>
+          <label htmlFor="f-upi" style={{ fontSize: 12, color: '#93a1b5' }}>2. UPI payment details (VPA, amount, reference)</label>
+          <textarea id="f-upi" value={upiText} onChange={e => setUpiText(e.target.value)} placeholder="2. UPI details / screenshot text (OCR text paste karo)" rows={7} className="card" style={{ color: '#fff', width: '100%' }} />
+        </div>
+        <div>
+          <label htmlFor="f-hash" style={{ fontSize: 12, color: '#93a1b5' }}>3. Crypto transaction hash, if any (optional)</label>
+          <textarea id="f-hash" value={hash} onChange={e => setHash(e.target.value)} placeholder="3. Crypto tx hash (0x…)" rows={7} className="card" style={{ color: '#fff', width: '100%' }} />
+        </div>
       </div>
-      <button onClick={trace} disabled={loading} style={{ marginTop: 12, background: '#f59e0b', color: '#000', padding: '12px 28px', fontWeight: 800, border: 0, borderRadius: 8 }}>
-        {loading ? 'Tracing…' : 'TRACE KARO'}
+      <div className="card" style={{ marginTop: 12, borderColor: consent ? '#22c55e' : '#1f2937' }}>
+        <label htmlFor="f-consent" style={{ display: 'flex', gap: 10, alignItems: 'flex-start', fontSize: 13, cursor: 'pointer' }}>
+          <input id="f-consent" type="checkbox" checked={consent} onChange={e => setConsent(e.target.checked)} style={{ marginTop: 3 }} />
+          <span>I consent to processing the text I pasted above <em>only</em> to generate this one
+          investigation trail. I confirm this is my own data, contains no OTPs, passwords, or anyone
+          else&apos;s private information. Nothing is stored after my session. See <a href="/privacy" style={{ color: '#f59e0b' }}>Privacy Policy</a>.</span>
+        </label>
+      </div>
+      <button onClick={trace} disabled={loading || !consent} title={consent ? 'Start the investigation' : 'Please tick the consent box first'} style={{ marginTop: 12, background: consent ? '#f59e0b' : '#3a4356', color: consent ? '#000' : '#9aa5b5', padding: '12px 28px', fontWeight: 800, border: 0, borderRadius: 8, cursor: consent ? 'pointer' : 'not-allowed' }}>
+        {loading ? 'Tracing…' : 'TRACE KARO — start investigation'}
       </button>
-      {result && (<>
+      {!consent && <p style={{ fontSize: 12, color: '#93a1b5' }}>Tick the consent box above to enable the button (required under India&apos;s DPDP Act).</p>}
+      {result && (<div aria-live="polite" aria-label="Investigation results">
         <div className="card" style={{ height: 340, marginTop: 16, padding: 0, overflow: 'hidden' }}>
           <ReactFlow nodes={nodes} edges={edges}
             onEdgeClick={(_, e) => setSelected(result.links.find((l: any) => l.from_id === e.source && l.to_id === e.target) || result.links[0])}
@@ -126,7 +145,17 @@ export default function Page() {
             ))}
           </div>
         </div>
-      </>)}
+      </div>)}
+      <footer style={{ marginTop: 32, padding: '20px 4px 8px', borderTop: '1px solid #1f2937', fontSize: 12, color: '#93a1b5' }}>
+        <p style={{ margin: '0 0 8px' }}><strong style={{ color: '#e5e7eb' }}>SWARNA-CONTROL.AI</strong> — free student prototype for SANGYAN Hackathon 2026, organised by SNTC, IIT (BHU) Varanasi in collaboration with SEBI &amp; NSDL. Not a bank, broker, advisor, or government service. Outputs are investigation aids, not verdicts.</p>
+        <nav aria-label="Legal and policy pages">
+          <a href="/privacy" style={{ color: '#93a1b5' }}>Privacy Policy</a>{' · '}
+          <a href="/terms" style={{ color: '#93a1b5' }}>Terms &amp; Conditions</a>{' · '}
+          <a href="/cookies" style={{ color: '#93a1b5' }}>Cookie Policy (no cookies used)</a>{' · '}
+          <a href="/refunds" style={{ color: '#93a1b5' }}>Refund Policy (free service)</a>
+        </nav>
+        <p style={{ margin: '8px 0 0' }}>Contact: via the official SANGYAN Unstop listing. For real fraud: cybercrime.gov.in · Sanchar Saathi Chakshu · bank helpline / 1930.</p>
+      </footer>
     </main>
   );
 }
