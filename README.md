@@ -6,10 +6,10 @@
 SANGYAN 2026 (SNTC IIT-BHU x SEBI x NSDL) — Track A + E combo.
 Solo build, 4-5 hrs/day, Ethereum only, zero-cost stack.
 
-## Live Demo (fill after DEPLOY)
-- Frontend: `https://<your-app>.vercel.app`
-- Backend: `https://<your-svc>.onrender.com` (`/health` → ok, `/docs` 404 in prod)
-- Video (4-min, Praveen case): `<youtube/drive link>`
+## Live Demo
+- Frontend: `https://swarna-control-ai.vercel.app`
+- Backend: `https://swarn-control-backend.onrender.com` (`/health` → ok, `/docs` 404 in prod)
+- Video (4-min, Praveen case): `<youtube/drive link — add after recording>`
 - PPT: `SWARN-CONTROL.AI.pptx` in repo root
 
 ## One-liner

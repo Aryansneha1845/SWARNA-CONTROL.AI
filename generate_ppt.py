@@ -141,7 +141,7 @@ slide_title("08 · BHARAT-FIRST USABILITY", "Built for Ranchi, not just metros."
 slide_title("09 · IMPACT & ASK", "Hum scam nahi batate, control wapas dete hain.", [
     ("30% Resilience: victim goes from 3 disconnected fragments to 1 actionable trail + report drafts.", GOLD),
     ("15% Feasibility: zero-cost stack (free tiers, no cards) — deployable to investor-protection circles tomorrow.", GOLD),
-    ("Live Demo: <vercel-url>  ·  Backend: <render-url>  ·  GitHub: github.com/Aryansneha1845/SWARNA-CONTROL.AI", CYAN),
+    ("Live Demo: https://swarna-control-ai.vercel.app  ·  Backend: https://swarn-control-backend.onrender.com  ·  GitHub: github.com/Aryansneha1845/SWARNA-CONTROL.AI", CYAN),
     ("Video (4-min, Praveen case) + this deck + working prototype = complete submission.", DIM),
 ], note="Fill the two URLs after DEPLOY (docs/DEPLOY.md), then export this deck to PDF for submission.")
 
