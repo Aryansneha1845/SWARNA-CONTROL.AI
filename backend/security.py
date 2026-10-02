@@ -43,7 +43,28 @@ async def add_security_headers(request, call_next):
     resp.headers["X-Frame-Options"] = "DENY"
     resp.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
     resp.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()"
-    resp.headers["Content-Security-Policy"] = "default-src 'none'; frame-ancestors 'none'"
+    path = getattr(getattr(request, "url", None), "path", "") or ""
+    is_docs = (
+        path == "/docs" or path == "/redoc" or path == "/openapi.json"
+        or path.startswith("/docs/") or path.startswith("/redoc/")
+    )
+    if is_docs:
+        # Swagger UI / ReDoc need inline scripts + CDN assets. Dev-only
+        # (prod disables /docs entirely in main.py). Keep framing denied.
+        resp.headers["Content-Security-Policy"] = (
+            "default-src 'self'; "
+            "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://unpkg.com; "
+            "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://unpkg.com; "
+            "img-src 'self' data: https:; "
+            "font-src 'self' data: https:; "
+            "connect-src 'self'; "
+            "worker-src 'self' blob:; "
+            "object-src 'none'; "
+            "frame-ancestors 'none'; "
+            "base-uri 'self'"
+        )
+    else:
+        resp.headers["Content-Security-Policy"] = "default-src 'none'; frame-ancestors 'none'"
     if os.getenv("ENV", "dev") == "prod":
         resp.headers["Strict-Transport-Security"] = "max-age=63072000; includeSubDomains"
     return resp

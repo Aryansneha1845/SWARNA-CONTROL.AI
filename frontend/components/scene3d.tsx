@@ -174,9 +174,26 @@ export function InvestigationScene({ caseData, time, selectedId, onSelect, railF
 }
 
 /* Cinematic ambient network for the hero landing */
-export function AmbientNet() {
+function AmbientRig({ pts, lines }: { pts: V3[]; lines: V3[][] }) {
   const group = useRef<THREE.Group>(null);
   const rm = useMemo(reducedMotion, []);
+  useFrame((_, dt) => { if (group.current && !rm) group.current.rotation.y += dt * 0.03; });
+  return (
+    <group ref={group}>
+      {pts.map((p, i) => (
+        <mesh key={i} position={p}>
+          <sphereGeometry args={[0.09, 10, 10]} />
+          <meshBasicMaterial color={i % 5 === 0 ? '#f5a30b' : i % 3 === 0 ? '#8b5cf6' : '#22d3ee'} transparent opacity={0.75} />
+        </mesh>
+      ))}
+      {lines.map((l, i) => (
+        <Line key={i} points={l} color="#1d3a4d" lineWidth={1} transparent opacity={0.5} />
+      ))}
+    </group>
+  );
+}
+
+export function AmbientNet() {
   const { pts, lines } = useMemo(() => {
     const N = 42, pts: V3[] = [];
     for (let i = 0; i < N; i++) {
@@ -190,23 +207,12 @@ export function AmbientNet() {
     }
     return { pts, lines: lines.slice(0, 70) };
   }, []);
-  useFrame((_, dt) => { if (group.current && !rm) group.current.rotation.y += dt * 0.03; });
   return (
     <Canvas dpr={[1, 1.5]} camera={{ position: [0, 3, 24], fov: 55 }} gl={{ antialias: true }}>
       <color attach="background" args={['#04060a']} />
       <fog attach="fog" args={['#04060a', 20, 50]} />
       <ambientLight intensity={0.7} />
-      <group ref={group}>
-        {pts.map((p, i) => (
-          <mesh key={i} position={p}>
-            <sphereGeometry args={[0.09, 10, 10]} />
-            <meshBasicMaterial color={i % 5 === 0 ? '#f5a30b' : i % 3 === 0 ? '#8b5cf6' : '#22d3ee'} transparent opacity={0.75} />
-          </mesh>
-        ))}
-        {lines.map((l, i) => (
-          <Line key={i} points={l} color="#1d3a4d" lineWidth={1} transparent opacity={0.5} />
-        ))}
-      </group>
+      <AmbientRig pts={pts} lines={lines} />
     </Canvas>
   );
 }

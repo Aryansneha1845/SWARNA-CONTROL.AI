@@ -1,23 +1,28 @@
-/* SWARNA-CONTROL.AI — intelligence-grade command center design system */
+/* SWARNA-CONTROL.AI — KIBORI-inspired flat warm theme (functionality preserved) */
 :root {
-  --bg0: #04060a;
-  --bg1: #070b12;
-  --panel: rgba(11, 16, 24, 0.82);
-  --panel-solid: #0b1018;
-  --line: #1a2433;
-  --line-soft: #131b28;
-  --txt: #e8eef6;
-  --dim: #93a1b5;
-  --faint: #7d8ea3; /* raised for ≥4.5:1 contrast on near-black (was #5b6a7f) */
-  --cyan: #22d3ee;
+  --bg0: #0a0806;
+  --bg1: #0a0806;
+  --panel: #100d09;
+  --panel-solid: #100d09;
+  --line: rgba(242, 236, 226, 0.16);
+  --line-soft: rgba(242, 236, 226, 0.10);
+  --txt: #f2ece2;
+  --dim: rgba(242, 236, 226, 0.62);
+  --faint: rgba(242, 236, 226, 0.62);
+  --cyan: #e0bd80;
   --violet: #8b5cf6;
-  --amber: #f5a30b;
-  --red: #f04444;
+  --amber: #f2ece2;
+  --gold: #f2ece2;
+  --red: #a3392c;
   --green: #22c55e;
   --white: #f8fafc;
-  --mono: "JetBrains Mono", ui-monospace, monospace;
-  --disp: "Space Grotesk", system-ui, sans-serif;
+  --mono: "Inter", -apple-system, "Helvetica Neue", Arial, sans-serif;
+  --disp: "Inter", -apple-system, "Helvetica Neue", Arial, sans-serif;
+  --serif: "Instrument Serif", Georgia, "Times New Roman", serif;
 }
+/* Warm readable selection — fixes all-blue selected look from screenshots */
+::selection { background: #3a2c1c; color: #f2ece2; }
+input::selection, textarea::selection { background: #3a2c1c; color: #f2ece2; }
 * { box-sizing: border-box; }
 html, body { height: 100%; }
 body {
@@ -44,12 +49,12 @@ input, textarea, select { font-family: inherit; color: var(--txt); }
 /* ---------- shell ---------- */
 .cc-root { position: fixed; inset: 0; display: flex; flex-direction: column; }
 .cc-topbar {
-  height: 52px; flex: none; display: flex; align-items: center; gap: 16px; padding: 0 16px;
-  background: linear-gradient(180deg, rgba(13,20,32,.95), rgba(8,12,20,.88));
-  border-bottom: 1px solid var(--line); backdrop-filter: blur(14px); z-index: 40;
+  height: 60px; flex: none; display: flex; align-items: center; gap: 30px; padding: 0 30px;
+  background: #0a0806;
+  border-bottom: 1px solid transparent; z-index: 40;
 }
-.brand { font-weight: 700; letter-spacing: .14em; font-size: 13px; }
-.brand b { color: var(--amber); }
+.brand { font-weight: 400; letter-spacing: .01em; font-size: 18px; font-family: var(--serif); }
+.brand b { color: var(--txt); font-weight: 400; }
 .case-chip { font-family: var(--mono); font-size: 11px; color: var(--dim); border: 1px solid var(--line); padding: 3px 10px; border-radius: 20px; }
 .status-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); box-shadow: 0 0 8px var(--green); animation: breathe 2.6s ease-in-out infinite; }
 @keyframes breathe { 0%,100% { opacity: 1; } 50% { opacity: .45; } }
@@ -70,8 +75,8 @@ input, textarea, select { font-family: inherit; color: var(--txt); }
 .dock-btn.active { color: var(--cyan); border-color: #1e3a4a; background: #0d1b26; box-shadow: inset 0 0 12px rgba(34,211,238,.12); }
 .dock-sep { width: 24px; height: 1px; background: var(--line); margin: 6px 0; }
 
-/* center canvas */
-.cc-canvas { flex: 1; position: relative; margin: 12px; border: 1px solid var(--line); border-radius: 16px; overflow: hidden; background: radial-gradient(1200px 700px at 50% 30%, #0a1220 0%, var(--bg0) 70%); min-width: 0; }
+/* center canvas — flat, no 3D glow */
+.cc-canvas { flex: 1; position: relative; margin: 12px; border: 1px solid var(--line); border-radius: 2px; overflow: hidden; background: #0a0806; min-width: 0; }
 .cc-canvas canvas { display: block; }
 .canvas-hud { position: absolute; top: 12px; left: 14px; z-index: 10; pointer-events: none; }
 .canvas-hud h2 { margin: 0; font-size: 12px; letter-spacing: .22em; color: var(--dim); font-weight: 600; }
@@ -81,9 +86,9 @@ input, textarea, select { font-family: inherit; color: var(--txt); }
 .rail-btn.active { color: #04121a; background: var(--cyan); border-color: var(--cyan); font-weight: 700; }
 .replay-banner { position: absolute; left: 50%; transform: translateX(-50%); bottom: 12px; z-index: 10; font-family: var(--mono); font-size: 11px; background: rgba(8,12,20,.85); border: 1px solid var(--amber); color: var(--amber); padding: 6px 16px; border-radius: 20px; }
 
-/* right intel column */
-.cc-right { width: 340px; flex: none; margin: 12px 12px 12px 0; display: flex; flex-direction: column; gap: 10px; overflow-y: auto; z-index: 20; }
-.panel { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; backdrop-filter: blur(14px); padding: 14px; }
+/* right intel column — flat */
+.cc-right { width: 360px; flex: none; margin: 12px 12px 12px 0; display: flex; flex-direction: column; gap: 10px; overflow-y: auto; z-index: 20; }
+.panel { background: var(--panel); border: 1px solid var(--line); border-radius: 2px; padding: 18px; }
 .panel h3 { margin: 0 0 10px; font-size: 11px; letter-spacing: .2em; color: var(--dim); font-weight: 700; }
 .panel h4 { margin: 12px 0 6px; font-size: 11px; letter-spacing: .12em; color: var(--dim); }
 
@@ -117,37 +122,40 @@ input[type="range"].tl-slider { width: 100%; accent-color: var(--amber); }
 .b-risk-md { color: var(--amber); border-color: #713f12; background: rgba(245,163,11,.08); }
 .b-risk-lo { color: var(--green); border-color: #14532d; background: rgba(34,197,94,.08); }
 
-/* buttons + inputs */
-.btn { border: 1px solid var(--line); background: #121a28; color: var(--txt); padding: 8px 14px; border-radius: 8px; font-size: 12px; }
-.btn:hover { border-color: #31445f; }
-.btn-gold { background: var(--amber); border-color: var(--amber); color: #1a1000; font-weight: 700; }
+/* buttons + inputs — KIBORI pill + expanding fields */
+.btn { border: 1px solid var(--line); background: transparent; color: var(--txt); padding: 10px 16px; border-radius: 2px; font-size: 13px; letter-spacing: .02em; }
+.btn:hover { border-color: var(--txt); }
+.btn-gold { background: #f2ece2; border-color: #f2ece2; color: #100c08; font-weight: 400; padding: 12px 20px; }
+.btn-gold:hover { background: #fffaf1; }
 .btn-ghost { background: transparent; }
-.field { width: 100%; background: #0a101a; border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; font-size: 12px; resize: vertical; }
-.field:focus { outline: none; border-color: var(--cyan); }
+.field { width: 100%; background: transparent; border: 0; border-bottom: 1px solid rgba(242,236,226,.32); border-radius: 0; padding: 10px 0; font-size: 15px; line-height: 1.5; resize: vertical; color: var(--txt); }
+.field:focus { outline: none; border-bottom-color: #f2ece2; }
+.field::placeholder { color: rgba(242,236,226,.4); }
 .mono { font-family: var(--mono); }
 .dim { color: var(--dim); } .faint { color: var(--faint); }
 .kv { display: flex; justify-content: space-between; font-size: 12px; padding: 3px 0; border-bottom: 1px dashed var(--line-soft); }
 .kv span:first-child { color: var(--dim); } .kv span:last-child { font-family: var(--mono); font-size: 11px; }
 
-/* command palette */
-.palette-back { position: fixed; inset: 0; background: rgba(2,4,8,.7); z-index: 100; display: flex; justify-content: center; padding-top: 12vh; backdrop-filter: blur(4px); }
-.palette { width: 560px; max-height: 420px; background: #0b111c; border: 1px solid #2a3a52; border-radius: 14px; overflow: hidden; box-shadow: 0 30px 80px rgba(0,0,0,.6); }
+/* command palette + expanding intake sheet */
+.palette-back { position: fixed; inset: 0; background: rgba(9,7,5,.72); z-index: 100; display: flex; justify-content: center; padding: 6vh 20px 20px; overflow-y: auto; }
+.palette { width: min(960px, 92vw); max-height: none; background: #100d09; border: 1px solid var(--line); border-radius: 2px; overflow: hidden; box-shadow: none; }
+.palette-intake { width: min(1020px, 94vw); }
 .palette input { width: 100%; background: transparent; border: 0; border-bottom: 1px solid var(--line); padding: 14px 16px; font-size: 14px; }
 .palette input:focus { outline: none; }
 .palette-item { padding: 10px 16px; font-size: 13px; display: flex; gap: 10px; align-items: center; cursor: pointer; }
 .palette-item.active, .palette-item:hover { background: #14202f; }
 .palette-item .k { font-family: var(--mono); font-size: 10px; color: var(--cyan); margin-left: auto; }
 
-/* hero */
-.hero-back { position: fixed; inset: 0; z-index: 50; background: var(--bg0); display: flex; align-items: center; justify-content: center; transition: opacity .8s ease; }
+/* hero — KIBORI lockup, flat no 3D */
+.hero-back { position: fixed; inset: 0; z-index: 50; background: #0a0806; display: flex; align-items: center; justify-content: center; transition: opacity .8s ease; }
 .hero-back.exit { opacity: 0; pointer-events: none; }
-.hero-3d { position: absolute; inset: 0; }
-.hero-content { position: relative; text-align: center; max-width: 760px; padding: 0 24px; }
-.hero-content h1 { font-size: clamp(40px, 7vw, 84px); margin: 0; letter-spacing: .06em; font-weight: 800; }
-.hero-content h1 .gold { color: var(--amber); }
-.hero-tag { letter-spacing: .42em; font-size: 11px; color: var(--cyan); margin: 10px 0 6px; }
-.hero-sub { color: var(--dim); font-size: 15px; margin-bottom: 26px; }
-.hero-stats { display: flex; gap: 26px; justify-content: center; margin-bottom: 30px; font-family: var(--mono); font-size: 11px; color: var(--dim); }
+.hero-3d { display: none; }
+.hero-content { position: relative; text-align: center; max-width: 900px; padding: 0 24px; }
+.hero-content h1 { font-family: var(--serif); font-weight: 400; font-size: clamp(58px, 10.5vw, 150px); margin: 0; letter-spacing: .18em; margin-right: -.18em; }
+.hero-content h1 .gold { color: var(--txt); }
+.hero-tag { letter-spacing: .26em; font-size: 11px; color: rgba(242,236,226,.52); margin: 14px 0 6px; text-transform: uppercase; }
+.hero-sub { font-family: var(--serif); font-style: italic; color: rgba(242,236,226,.9); font-size: clamp(19px, 1.75vw, 28px); margin-bottom: 26px; }
+.hero-stats { display: flex; gap: 26px; justify-content: center; margin-bottom: 30px; font-family: var(--mono); font-size: 11px; color: var(--dim); letter-spacing: .14em; text-transform: uppercase; }
 .hero-stats b { display: block; font-size: 20px; color: var(--txt); }
 
 /* intel list */

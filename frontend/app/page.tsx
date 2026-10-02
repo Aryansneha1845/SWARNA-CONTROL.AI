@@ -3,18 +3,13 @@
    Backend + security + compliance preserved: same-origin /api proxy, DPDP consent gate,
    PII masking, legal routes (/privacy /terms /cookies /refunds) linked below. */
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import dynamic from 'next/dynamic';
 import { api, PRESETS } from '../lib/api';
 import { buildCase, T_MAX, REPLAY_SCRIPT, type CaseModel, type Rail } from '../lib/model';
-import { webglOK } from '../components/scene3d';
 import Graph2D from '../components/graph2d';
-import SceneBoundary from '../components/boundary';
 import Timeline from '../components/timeline';
 import Palette, { type PaletteCmd } from '../components/palette';
+import Tutorial, { WHAT_IT_DOES } from '../components/tutorial';
 import { EntityInspector, EvidencePanel, RiskOrb, CrossRailView, IntelPanel, ControlPanel, CaseOverview } from '../components/panels';
-
-const InvestigationScene = dynamic(() => import('../components/scene3d').then(m => m.InvestigationScene), { ssr: false });
-const AmbientNet = dynamic(() => import('../components/scene3d').then(m => m.AmbientNet), { ssr: false });
 
 type View = 'graph' | 'crossrail' | 'overview';
 type RightTab = 'inspect' | 'evidence' | 'intel' | 'risk' | 'control';
@@ -33,7 +28,6 @@ export default function CommandCenter() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [selectedEv, setSelectedEv] = useState<string | null>(null);
   const [railFilter, setRailFilter] = useState<Rail | 'ALL'>('ALL');
-  const [gl, setGl] = useState(true);
   const [sceneKey, setSceneKey] = useState(0);
 
   const [time, setTime] = useState(T_MAX);
@@ -44,6 +38,8 @@ export default function CommandCenter() {
   const [replayIdx, setReplayIdx] = useState(-1);
 
   const [paletteOpen, setPaletteOpen] = useState(false);
+  const [tourOpen, setTourOpen] = useState(false);
+  const [tourStep, setTourStep] = useState(0);
   const [intakeOpen, setIntakeOpen] = useState(false);
   const [mask, setMask] = useState(true);
   const [consent, setConsent] = useState(false);
@@ -51,7 +47,6 @@ export default function CommandCenter() {
   const [fUpi, setFUpi] = useState(PRESETS.praveen.upi);
   const [fHash, setFHash] = useState(PRESETS.praveen.hash);
 
-  useEffect(() => { setGl(webglOK()); }, []);
   useEffect(() => { api.health().then(h => setBackendOk(!!h?.ok)).catch(() => setBackendOk(false)); }, []);
 
   /* 4D clock */
@@ -186,6 +181,7 @@ export default function CommandCenter() {
           <button className="dock-btn" title="Replay investigation (R)" onClick={startReplay}>↻</button>
           <button className="dock-btn" title="Command palette (Ctrl+K)" onClick={() => setPaletteOpen(true)}>⌘</button>
           <button className="dock-btn" title="Reset visualization" onClick={resetViz}>⟲</button>
+          <button className="dock-btn" title="How it works — 60-sec tour" onClick={() => { setTourStep(0); setTourOpen(true); }}>?</button>
           <div className="dock-sep" />
           <button className="dock-btn" title="New investigation" onClick={() => setIntakeOpen(true)}>＋</button>
         </nav>
@@ -197,25 +193,21 @@ export default function CommandCenter() {
           aria-label="Investigation canvas">
           {view === 'graph' && (
             <>
-              <div className="canvas-hud"><h2>4D INVESTIGATION SPACE</h2>
-                <div className="sub">X entities · Y relationships · Z depth · TIME {Math.floor(time / 60)}:{String(Math.floor(time % 60)).padStart(2, '0')} · {activeEvents}/{caseData?.events.length ?? 0} events materialized {!gl && '· 2D FALLBACK'}</div>
+              <div className="canvas-hud"><h2>INVESTIGATION SPACE · FLAT 2D</h2>
+                <div className="sub">Entities · Relationships · TIME {Math.floor(time / 60)}:{String(Math.floor(time % 60)).padStart(2, '0')} · {activeEvents}/{caseData?.events.length ?? 0} events</div>
               </div>
               <div className="rail-filter" role="group" aria-label="Rail filter">
                 {(['ALL', 'upi', 'identity', 'crypto', 'message', 'evidence'] as const).map(r => (
                   <button key={r} className={`rail-btn ${railFilter === r ? 'active' : ''}`} onClick={() => setRailFilter(r)}>{r.toUpperCase()}</button>
                 ))}
               </div>
-              {caseData ? (gl ? (
-                <SceneBoundary fallback={<Graph2D caseData={caseData} time={time} selectedId={selectedId} onSelect={setSelectedId} railFilter={railFilter} />}>
-                  <InvestigationScene key={sceneKey} caseData={caseData} time={time} selectedId={selectedId}
-                    onSelect={setSelectedId} railFilter={railFilter} entered={entered} />
-                </SceneBoundary>
-              ) : (
+              {caseData ? (
                 <Graph2D caseData={caseData} time={time} selectedId={selectedId} onSelect={setSelectedId} railFilter={railFilter} />
-              )) : (
+              ) : (
                 <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 12 }}>
                   <div className="dim">No active case — initialize an investigation to materialize the space.</div>
                   <button className="btn btn-gold" onClick={() => setIntakeOpen(true)}>＋ NEW INVESTIGATION</button>
+                  <button className="btn btn-ghost dim" style={{ fontSize: 12 }} onClick={() => { setTourStep(0); setTourOpen(true); }}>First time here? Take the 60-sec tour →</button>
                 </div>
               )}
               {replaying && replayIdx >= 0 && (
@@ -275,65 +267,82 @@ export default function CommandCenter() {
           events={caseData.events} onReplay={startReplay} replaying={replaying} />
       )}
 
-      {/* ---------- HERO ---------- */}
+      {/* ---------- HERO — flat KIBORI lockup, no 3D ---------- */}
       {!entered && (
         <div className={`hero-back ${heroExit ? 'exit' : ''}`}>
-          <div className="hero-3d">{gl && (
-            <SceneBoundary fallback={null}>
-              <AmbientNet />
-            </SceneBoundary>
-          )}</div>
           <div className="hero-content">
-            <h1>SWARNA-<span className="gold">CONTROL.AI</span></h1>
-            <div className="hero-tag">SECURE WEALTH &amp; RESILIENCE NETWORK</div>
-            <div className="hero-sub">Cross-Rail Financial Intelligence &amp; Investigation Platform</div>
+            <div className="hero-tag">Vol. 01 — SANGYAN 2026</div>
+            <h1>SWARNA</h1>
+            <div className="hero-sub">Cross-rail investigation control room — message + UPI + crypto trail, evidence only.</div>
             <div className="hero-stats">
               <span><b>6</b>RAILS TRACED</span>
               <span><b>5</b>EVIDENCE STATES</span>
               <span><b>7</b>KILL-CHAIN STAGES</span>
               <span><b>0</b>DATA RETAINED</span>
             </div>
-            <button className="btn btn-gold" style={{ fontSize: 15, padding: '14px 40px' }} onClick={() => setIntakeOpen(true)}>
-              INITIALIZE INVESTIGATION
-            </button>
-            <div className="dim" style={{ marginTop: 14, fontSize: 12 }}>
-              Free student prototype · SANGYAN 2026 · {backendOk === false ? 'Backend offline — start run_backend.bat' : 'Evidence only, no tips'}
+            {/* ---------- WHAT IT DOES — first-run explainer ---------- */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0,1fr))', gap: 10, marginBottom: 26, textAlign: 'left' }}>
+              {WHAT_IT_DOES.map(c => (
+                <div key={c.title} style={{ border: '1px solid var(--line)', borderRadius: 2, padding: '12px 14px', background: 'rgba(16,23,36,.55)' }}>
+                  <div style={{ fontSize: 16 }}>{c.icon}</div>
+                  <div style={{ fontSize: 13, fontWeight: 700, margin: '6px 0 4px' }}>{c.title}</div>
+                  <div className="dim" style={{ fontSize: 12, lineHeight: 1.55 }}>{c.body}</div>
+                </div>
+              ))}
             </div>
-          </div>
-        </div>
-      )}
-
-      {/* ---------- INTAKE (DPDP consent gate preserved) ---------- */}
-      {intakeOpen && (
-        <div className="palette-back" onClick={() => setIntakeOpen(false)}>
-          <div className="palette" style={{ width: 640 }} onClick={e => e.stopPropagation()} role="dialog" aria-label="New investigation">
-            <div style={{ padding: '14px 16px', borderBottom: '1px solid #1a2433', fontSize: 12, letterSpacing: '.2em', color: '#93a1b5' }}>NEW INVESTIGATION · EVIDENCE ONLY</div>
-            <div style={{ padding: 16, display: 'grid', gap: 10 }}>
-              <div style={{ display: 'flex', gap: 6 }}>
-                <button className="btn" style={{ fontSize: 11 }} onClick={() => { setFMsg(PRESETS.praveen.message); setFUpi(PRESETS.praveen.upi); setFHash(PRESETS.praveen.hash); }}>Synthetic demo: Praveen</button>
-                <button className="btn" style={{ fontSize: 11 }} onClick={() => { setFMsg(PRESETS.kavita.message); setFUpi(PRESETS.kavita.upi); setFHash(PRESETS.kavita.hash); }}>Synthetic demo: Kavita</button>
-              </div>
-              <label className="dim" style={{ fontSize: 11 }} htmlFor="in-msg">Suspicious message (your own data only — never OTPs or passwords)</label>
-              <textarea id="in-msg" className="field" rows={4} value={fMsg} onChange={e => setFMsg(e.target.value)} />
-              <label className="dim" style={{ fontSize: 11 }} htmlFor="in-upi">UPI payment details</label>
-              <textarea id="in-upi" className="field" rows={2} value={fUpi} onChange={e => setFUpi(e.target.value)} />
-              <label className="dim" style={{ fontSize: 11 }} htmlFor="in-hash">Crypto tx hash (optional)</label>
-              <input id="in-hash" className="field mono" value={fHash} onChange={e => setFHash(e.target.value)} />
-              <label style={{ display: 'flex', gap: 8, fontSize: 12 }} htmlFor="in-consent">
-                <input id="in-consent" type="checkbox" checked={consent} onChange={e => setConsent(e.target.checked)} />
-                <span>I consent to processing this text for one investigation trail. My data, no OTPs, nothing stored. <a href="/privacy" style={{ color: '#f5a30b' }}>Privacy</a></span>
-              </label>
-              {loading && <div className="scanline" />}
-              {loading && <div className="mono dim" style={{ fontSize: 11 }}>{loadMsg}</div>}
-              <button className="btn btn-gold" disabled={!consent || loading}
-                style={!consent ? { opacity: 0.45 } : {}} onClick={runTrace}>
-                {loading ? 'INVESTIGATING…' : 'TRACE KARO — start investigation'}
+            <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
+              <button className="btn btn-gold" style={{ fontSize: 13, padding: '12px 28px', letterSpacing: '.06em' }} onClick={() => setIntakeOpen(true)}>
+                Commission — INITIALIZE INVESTIGATION
+              </button>
+              <button className="btn" style={{ fontSize: 13, padding: '12px 22px', letterSpacing: '.06em' }} onClick={() => { setTourStep(0); setTourOpen(true); }}>
+                ❓ 60-SEC TOUR
               </button>
             </div>
+            <div className="dim" style={{ marginTop: 14, fontSize: 12 }}>
+              Free student prototype · {backendOk === false ? 'Backend offline — start run_backend.bat' : 'Evidence only, no tips'}
+            </div>
           </div>
         </div>
       )}
 
+      {/* ---------- INTAKE — expanding flat sheet (DPDP consent gate preserved) ---------- */}
+      {intakeOpen && (
+        <div className="palette-back" onClick={() => setIntakeOpen(false)}>
+          <div className="palette palette-intake" onClick={e => e.stopPropagation()} role="dialog" aria-label="New investigation">
+            <div style={{ padding: '20px 28px', borderBottom: '1px solid var(--line)', fontSize: 11, letterSpacing: '.22em', color: 'var(--dim)' }}>NEW INVESTIGATION · EVIDENCE ONLY</div>
+            <div style={{ padding: '28px', display: 'grid', gap: 18, gridTemplateColumns: 'minmax(0,1fr) minmax(0,1fr)' }}>
+              <div style={{ display: 'grid', gap: 10, alignContent: 'start' }}>
+                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                  <button className="btn" style={{ fontSize: 12 }} onClick={() => { setFMsg(PRESETS.praveen.message); setFUpi(PRESETS.praveen.upi); setFHash(PRESETS.praveen.hash); }}>Synthetic demo: Praveen</button>
+                  <button className="btn" style={{ fontSize: 12 }} onClick={() => { setFMsg(PRESETS.kavita.message); setFUpi(PRESETS.kavita.upi); setFHash(PRESETS.kavita.hash); }}>Synthetic demo: Kavita</button>
+                </div>
+                <label className="dim" style={{ fontSize: 11, letterSpacing: '.12em' }} htmlFor="in-msg">SUSPICIOUS MESSAGE — YOUR OWN DATA ONLY</label>
+                <textarea id="in-msg" className="field" rows={8} value={fMsg} onChange={e => setFMsg(e.target.value)} placeholder="Paste message text…" />
+              </div>
+              <div style={{ display: 'grid', gap: 10, alignContent: 'start' }}>
+                <label className="dim" style={{ fontSize: 11, letterSpacing: '.12em' }} htmlFor="in-upi">UPI PAYMENT DETAILS</label>
+                <textarea id="in-upi" className="field" rows={3} value={fUpi} onChange={e => setFUpi(e.target.value)} placeholder="abc-invest@upi, Rs 50,000…" />
+                <label className="dim" style={{ fontSize: 11, letterSpacing: '.12em' }} htmlFor="in-hash">CRYPTO TX HASH (OPTIONAL)</label>
+                <input id="in-hash" className="field mono" value={fHash} onChange={e => setFHash(e.target.value)} placeholder="0x…" />
+                <label style={{ display: 'flex', gap: 10, fontSize: 13, lineHeight: 1.5 }} htmlFor="in-consent">
+                  <input id="in-consent" type="checkbox" checked={consent} onChange={e => setConsent(e.target.checked)} />
+                  <span>I consent to processing this text for one investigation trail. My data, no OTPs, nothing stored. <a href="/privacy" style={{ color: 'inherit', textDecoration: 'underline' }}>Privacy</a></span>
+                </label>
+                {loading && <div className="scanline" />}
+                {loading && <div className="mono dim" style={{ fontSize: 12 }}>{loadMsg}</div>}
+                <button className="btn btn-gold" disabled={!consent || loading}
+                  style={!consent ? { opacity: 0.45 } : {}} onClick={runTrace}>
+                  {loading ? 'INVESTIGATING…' : 'TRACE KARO — start investigation'}
+                </button>
+                <div className="dim mono" style={{ fontSize: 10 }}>Never OTPs or passwords · Nothing stored</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <Tutorial open={tourOpen} step={tourStep} setStep={setTourStep}
+        onClose={() => setTourOpen(false)} onOpenIntake={() => setIntakeOpen(true)} />
       <Palette open={paletteOpen} setOpen={setPaletteOpen} caseData={caseData} commands={commands} />
     </div>
   );
