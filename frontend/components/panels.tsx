@@ -246,6 +246,7 @@ export function ControlPanel({ pack, hindi, destination, speak }: {
       <div className="mono dim" style={{ fontSize: 11, margin: '6px 0' }}>{hindi}</div>
       <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
         <button className="btn" onClick={() => speak(hindi)}>🔊 Hindi briefing</button>
+        <button className="btn btn-ghost" title="Check if Hindi voice works before recording" onClick={() => speak('Namaste. Main Swarn Control hoon. Aapka trail taiyaar hai.')}>Test voice</button>
       </div>
       <h4>CHAKSHU REPORT DRAFT</h4>
       <button className="btn" onClick={() => copy(pack.chakshu)}>Copy draft</button>{' '}

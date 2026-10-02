@@ -94,7 +94,30 @@ export default function CommandCenter() {
   }, [consent, loading, fMsg, fUpi, fHash, entered]);
 
   const speak = useCallback((t: string) => {
-    try { const u = new SpeechSynthesisUtterance(t); u.lang = 'hi-IN'; speechSynthesis.cancel(); speechSynthesis.speak(u); }
+    try {
+      if (!('speechSynthesis' in window)) { alert('Is browser me voice support nahi hai — Chrome/Edge me kholo.'); return; }
+      if (!t || !t.trim()) { alert('Bolne ke liye koi Hindi summary nahi — pehle TRACE KARO chalao.'); return; }
+      const say = () => {
+        const voices = speechSynthesis.getVoices();
+        // Prefer real Hindi voice, else any Indian-English voice, else default.
+        const v = voices.find(v => v.lang?.toLowerCase().startsWith('hi'))
+          ?? voices.find(v => /hindi/i.test(v.name))
+          ?? voices.find(v => v.lang?.toLowerCase() === 'en-in')
+          ?? null;
+        const u = new SpeechSynthesisUtterance(t);
+        u.lang = 'hi-IN'; u.rate = 0.95;
+        if (v) u.voice = v;
+        u.onerror = () => alert('Voice baj nahi payi. Windows Settings → Time & language → Language → Hindi add karo (Speech voice ke saath), browser restart karo, phir TEST VOICE dabao.');
+        speechSynthesis.cancel(); speechSynthesis.speak(u);
+        // If no Hindi voice installed at all, warn once (utterance still tries default voice).
+        if (!v) alert('Hindi voice nahi mili — default voice me bola ja raha hai. Sahi Hindi ke liye: Windows Settings → Language → Hindi add karo.');
+      };
+      if (speechSynthesis.getVoices().length === 0) {
+        // Chrome loads voices async — wait once, then speak.
+        speechSynthesis.onvoiceschanged = () => { speechSynthesis.onvoiceschanged = null; say(); };
+        setTimeout(() => { if (!speechSynthesis.speaking) say(); }, 800);
+      } else say();
+    }
     catch { alert('Browser audio unavailable.'); }
   }, []);
 
