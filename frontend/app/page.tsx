@@ -93,17 +93,21 @@ export default function CommandCenter() {
     setLoading(false); setLoadMsg('');
   }, [consent, loading, fMsg, fUpi, fHash, entered]);
 
+  const [voiceName, setVoiceName] = useState<string>('');
+
   const speak = useCallback((t: string) => {
     try {
       if (!('speechSynthesis' in window)) { alert('Is browser me voice support nahi hai — Chrome/Edge me kholo.'); return; }
       if (!t || !t.trim()) { alert('Bolne ke liye koi Hindi summary nahi — pehle TRACE KARO chalao.'); return; }
       const say = () => {
         const voices = speechSynthesis.getVoices();
-        // Prefer real Hindi voice, else any Indian-English voice, else default.
-        const v = voices.find(v => v.lang?.toLowerCase().startsWith('hi'))
+        // Prefer named Indian Hindi voices (Swara/Kalpana), then any hi-*, then en-IN.
+        const v = voices.find(v => /swara|kalpana/i.test(v.name) && v.lang?.toLowerCase().startsWith('hi'))
+          ?? voices.find(v => v.lang?.toLowerCase().startsWith('hi'))
           ?? voices.find(v => /hindi/i.test(v.name))
           ?? voices.find(v => v.lang?.toLowerCase() === 'en-in')
           ?? null;
+        setVoiceName(v ? `${v.name} (${v.lang})` : 'default voice (koi Hindi voice nahi mili)');
         const u = new SpeechSynthesisUtterance(t);
         u.lang = 'hi-IN'; u.rate = 0.95;
         if (v) u.voice = v;
@@ -264,7 +268,7 @@ export default function CommandCenter() {
             {caseData && rightTab === 'evidence' && <><h3>EVIDENCE VAULT</h3><EvidencePanel caseData={caseData} selectedEv={selectedEv} onSelect={setSelectedEv} onPin={pinEvidence} /></>}
             {caseData && rightTab === 'intel' && <><h3>SWARNA INTELLIGENCE</h3><IntelPanel caseData={caseData} /></>}
             {caseData && rightTab === 'risk' && <><h3>RISK SIGNALS</h3><RiskOrb caseData={caseData} selectedId={selectedId} onSelect={setSelectedId} /></>}
-            {caseData && rightTab === 'control' && <><h3>INVESTIGATION CONTROL</h3><ControlPanel pack={pack} hindi={caseData.hindi} destination={caseData.destination} speak={speak} /></>}
+            {caseData && rightTab === 'control' && <><h3>INVESTIGATION CONTROL</h3><ControlPanel pack={pack} hindi={caseData.hindi} hindiDeva={caseData.hindiDeva} voiceName={voiceName} destination={caseData.destination} speak={speak} /></>}
           </div>
           <div className="panel">
             <label style={{ display: 'flex', gap: 8, alignItems: 'center', fontSize: 12 }}>

@@ -38,6 +38,16 @@ def family_alert_hindi(amount, vpa) -> str:
         f"Aage koi paisa mat bhejo is number/link pe. Maine report kar diya hai. Koi OTP/share mat karna."
     )
 
+def briefing_deva(amount, vpa) -> str:
+    """Deterministic Devanagari voice script — same content as the Hinglish
+    summary, but in Hindi script so hi-IN voices render a native Indian accent.
+    Display text stays Hinglish; only the spoken track uses this."""
+    return (
+        f"आपके {amount} रुपये {vpa} पर गए। "
+        f"क्रिप्टो में बदलकर अब वॉलेट में हैं। "
+        f"आगे मत भेजो। चक्षु पर रिपोर्ट करो, परिवार को अलर्ट भेजो।"
+    )
+
 def freeze_checklist() -> list[str]:
     return [
         "1. Aage koi payment mat karo - UPI autopay/permission check karo",

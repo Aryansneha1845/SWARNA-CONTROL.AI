@@ -158,7 +158,8 @@ def investigate(request: Request, body: InvestigateIn):
     hindi = (f"Aapke {amt} rupaye {vpa} pe gaye. Crypto me badal ke ab wallet me hain. "
              f"Aage mat bhejo. Chakshu pe report karo, parivar ko alert bhejo.")
     return {"entities": entities, "upi": upi, "links": links, "kill_chain": kc,
-            "chain": chain, "current_destination": dest, "hindi_summary": hindi}
+            "chain": chain, "current_destination": dest, "hindi_summary": hindi,
+            "hindi_summary_deva": control.briefing_deva(amt, vpa)}
 
 
 @app.post("/control-pack", dependencies=[Depends(require_key)])

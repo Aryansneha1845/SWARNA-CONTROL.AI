@@ -35,7 +35,7 @@ export interface CaseModel {
   caseId: string; nodes: CaseNode[]; edges: CaseEdge[];
   events: CaseEvent[]; evidence: EvidenceItem[];
   killChain: { stage: string; done: boolean }[];
-  hindi: string; destination: string; live: boolean;
+  hindi: string; hindiDeva: string; destination: string; live: boolean;
   stats: { entities: number; txns: number; links: number; evidence: number };
 }
 
@@ -130,7 +130,7 @@ export function buildCase(inv: any, pack: any, caseId = 'SWRN-2026-1047'): CaseM
 
   return {
     caseId, nodes, edges, events, evidence, killChain,
-    hindi: String(inv.hindi_summary || ''), destination: String(inv.current_destination || ''),
+    hindi: String(inv.hindi_summary || ''), hindiDeva: String(inv.hindi_summary_deva || ''), destination: String(inv.current_destination || ''),
     live, stats: { entities: nodes.length, txns: (chain.after || []).length + 2, links: edges.length, evidence: evidence.length },
   };
 }

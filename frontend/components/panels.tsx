@@ -231,23 +231,26 @@ export function IntelPanel({ caseData }: { caseData: CaseModel }) {
 }
 
 /* ---------------- CONTROL PANEL ---------------- */
-export function ControlPanel({ pack, hindi, destination, speak }: {
-  pack: any; hindi: string; destination: string; speak: (t: string) => void;
+export function ControlPanel({ pack, hindi, hindiDeva, voiceName, destination, speak }: {
+  pack: any; hindi: string; hindiDeva: string; voiceName: string; destination: string; speak: (t: string) => void;
 }) {
   const copy = (t: string) => { navigator.clipboard.writeText(t); };
   const dl = (name: string, t: string) => {
     const a = document.createElement('a');
     a.href = URL.createObjectURL(new Blob([t], { type: 'text/plain' })); a.download = name; a.click();
   };
+  // Spoken track: Devanagari first (native Indian accent), Hinglish fallback.
+  const voiceText = (hindiDeva && hindiDeva.trim()) || hindi;
   if (!pack) return <div className="dim">Run an investigation to generate the control pack.</div>;
   return (
     <div>
       <div className="kv"><span>Current destination</span><span>{destination}</span></div>
       <div className="mono dim" style={{ fontSize: 11, margin: '6px 0' }}>{hindi}</div>
       <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-        <button className="btn" onClick={() => speak(hindi)}>🔊 Hindi briefing</button>
-        <button className="btn btn-ghost" title="Check if Hindi voice works before recording" onClick={() => speak('Namaste. Main Swarn Control hoon. Aapka trail taiyaar hai.')}>Test voice</button>
+        <button className="btn" onClick={() => speak(voiceText)}>🔊 Hindi briefing</button>
+        <button className="btn btn-ghost" title="Check if Hindi voice works before recording" onClick={() => speak('नमस्ते। मैं स्वर्ण कंट्रोल हूँ। आपका ट्रेल तैयार है।')}>Test voice</button>
       </div>
+      {voiceName && <div className="mono faint" style={{ fontSize: 10, marginTop: 6 }}>Voice: {voiceName}</div>}
       <h4>CHAKSHU REPORT DRAFT</h4>
       <button className="btn" onClick={() => copy(pack.chakshu)}>Copy draft</button>{' '}
       <button className="btn btn-ghost" onClick={() => dl('chakshu_draft.txt', pack.chakshu)}>Download .txt</button>
