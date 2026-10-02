@@ -38,3 +38,11 @@ Goal: `https://<you>.vercel.app` (frontend) talking to
 - Render free sleeps after 15 min idle → cold start ~50s. Before jury/demo recording: open `/health` once to wake it, then run the Praveen trace.
 - Free-tier LLM APIs may retain prompts — on stage use ONLY synthetic fixtures (Praveen/Kavita), never real victim PII.
 - If Render is cold mid-demo: cached fixture path still responds once warm — never dies.
+
+## 6. Keep-alive (so the jury never sees a cold start)
+Render sleeps only when NOBODY visits. A free external pinger counts as a visitor:
+1. Sign up at https://cron-job.org (free, no card) → Create cronjob.
+2. Settings: URL = `https://<your-svc>.onrender.com/health`, schedule = every 10 minutes, request method GET, timeout 30s.
+3. Save → it pings forever. Verify after 30 min: Render dashboard → Metrics shows periodic 200s.
+4. Fallback: https://uptimerobot.com free plan (50 monitors, 5-min interval) — same URL.
+5. Video recording does NOT need this — record against local backend (zero network risk).
