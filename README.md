@@ -9,7 +9,7 @@ Solo build, 4-5 hrs/day, Ethereum only, zero-cost stack.
 ## Live Demo
 - Frontend: `https://swarna-control-ai.vercel.app`
 - Backend: `https://swarn-control-backend.onrender.com` (`/health` → ok, `/docs` 404 in prod)
-- Video (4-min, Praveen case): `<youtube/drive link — add after recording>`
+- Video (4-min, Praveen case): `https://youtu.be/c0CnQBTWU3E` (Unlisted)
 - PPT: `SWARN-CONTROL.AI.pptx` in repo root
 
 ## One-liner
